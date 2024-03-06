@@ -1,0 +1,77 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:main-test;DB_CLOSE_DELAY=-1
+    platform: h2
+    continue-on-error: true
+    hikari:
+      driver-class-name: org.h2.Driver
+      jdbc-url: ${spring.datasource.url}
+      username:
+      password:
+      connection-test-query: select 1
+      maximum-pool-size: 10
+      minimum-idle: 300000
+      pool-name: mainPool
+      connection-timeout: 30000
+
+  jpa:
+    open-in-view: false
+    database: default
+    database-platform: H2
+    hibernate:
+      dialect: org.hibernate.dialect.H2Dialect
+      ddl-auto: none
+      implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+      physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      jdbc:
+        batch_size: 30
+        batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: false
+
+
+app:
+  datasource:
+    main:
+      schemad: sql/main_schema.sql
+
+drools:
+  rules:
+    classpath: src/main/resources/rules
+
+client-type:
+  mapping:
+    rushmore: "0011952, 0012145, 0012149"
+    ditech: "0011785"
+    flagstar: "0030994"
+    servicemac: "0012233"
+    homepoint: "0011086"
+    mt: "0058055"
+    planethome: "0012336"
+    phh: "0092242"
+    huntington: "0089684"
+    tms: "0011958"
+    loandepot: "0012251"
+    roundpoint: "0010820"
+    umpqua: "0001767"
+    bok: "0042532"
+    regions: "0054608"
+    penfed: "0012211"
+    7servicing: "0013028"
+
+autoDoNotPayStates:
+  rushmore: "XX"
+  flagstar: "XX"
+  servicemac: "XX"
+  homepoint: "XY"
+  mt: "XX"
+  planethome: "YY, ZZ"
+  tms: "YY, ZZ"
+  huntington: "YY, ZZ"
+  loandepot: "YY, ZZ"
+  roundpoint : "YY, ZZ"
+
+inactive:
+  rules:

@@ -1,0 +1,15 @@
+import java.time.ZonedDateTime;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBD;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDFlags;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDResults
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDDecisionStatus
+
+agenda-group "rushmore"
+
+rule "RUSHMORE_0001_DNP_PAID"
+salience 140
+when
+    $tf: TaxFact(flags.amtPrcsFlgDelq == "P")
+then
+    $tf.setResult(TaxFactResult.builder().taxFactDecisionStatus(TaxFactDecisionStatus.DO_NOT_PAY).build());
+end

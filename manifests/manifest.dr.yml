@@ -1,0 +1,20 @@
+---
+applications:
+  - name: tax-servicing-loan-boarding-rules-api-{target}
+    memory: 2G
+    instances: 2
+    path: ../build/libs/tax-servicing-loan-boarding-rules-api-1.0.RELEASE.jar
+    buildpack: java_buildpack_offline
+    timeout: 180
+    routes:
+      - route: tax-servicing-loan-boarding-rules-api-{env-target}.apps.pcfptcpdr.clgxlabs.io
+    env:
+      SPRING_PROFILES_ACTIVE: dr
+      JAVA_OPTS: -XX:MaxMetaspaceSize=384M
+      JBP_CONFIG_APP_DYNAMICS_AGENT: '{default_application_name: "prod:tax-payment-decisions", default_tier_name: "tpd-rules"}'
+
+    services:
+      - config-server
+      - config-server-keystore
+      - splunk-syslog
+      - appdynamics-service

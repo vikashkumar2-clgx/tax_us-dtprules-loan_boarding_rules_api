@@ -1,0 +1,78 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5473/rules_local
+    username: taxsrvc_local_app
+    password: taxsrvc_local_user
+    platform: postgres
+    hikari:
+      driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      database-platform: Postgres
+      hibernate:
+        dialect: org.hibernate.dialect.PostgresPlusDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  flyway:
+    enabled: true
+    checkLocation: true
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    schemas: taxsrvc_local_app
+    locations: classpath:/main/db/migration
+    validate-on-migrate: true
+    baseline-on-migrate: true
+
+client-type:
+  mapping:
+    rushmore: "0011952, 0012145, 0012149"
+    ditech: "0011785"
+    flagstar: "0030994"
+    servicemac: "0012233"
+    homepoint: "0011086"
+    mt: "0058055"
+    planethome: "0012336"
+    phh: "0092242"
+    huntington: "0089684"
+    tms: "0011958"
+    loandepot: "0012251"
+    roundpoint: "0010820"
+    umpqua: "0001767"
+    bok: "0042532"
+    regions: "0054608"
+    penfed: "0012211"
+
+autoDoNotPayStates:
+  rushmore: "AL"
+  flagstar: "AL"
+  mt: "XX"
+  planethome: "YY, ZZ"
+  tms: "YY, ZZ"
+  huntington: "YY, ZZ"
+  loandepot: "YY, ZZ"
+  roundpoint : "YY, ZZ"
+inactive:
+  rules:
+    - RUSHMORE_0022_MR_DISBURSEMENTSTOP_K.drl
+    - FLAGSTAR_0006C_DNP_ZERO_LOWASSESSMENT.drl
+    - RUSHMORE_0032_MR_CLDISBAMT_BKINVESTOR_5000.drl
+    - RUSHMORE_0021_MR_DISBURSEMENTSTOP_8_BKINVEST.drl
+    - RUSHMORE_0021A_PAY_DISBURSEMENTSTOP_8_BKINVEST.drl
+    - TMS_0023_PO_CLDISBAMT_25000.drl
+    - Roundpoint_0007_MR_UNCERTIFIED.drl
+    - Roundpoint_0017D_MR_DISBURSEMENTSTOPS.drl
+    - UMPQUA_0011_PO_DISBURSEMENTSTOPS.drl
+    - UMPQUA_0012A_PO_DISBURSEMENTSTOPS.drl
+    - UMPQUA_0012B_PO_DISBURSEMENTSTOPS.drl
+    - UMPQUA_0015_MR_DISBURSEMENTSTOPS.drl
+    - PHH_0003B_DNP_INACTIVE_PRINBAL_0.drl
+    - PHH_0010_MR_CLDISBAMT_20000.drl
+    - TMS_0010B_PO_DISBURSEMENTSTOPS.drl
+    - Regions_0019A_PO_DISBURSEMENTSTOP.drl
+    - Regions_0019B_PO_DISBURSEMENTSTOP.drl
+    - Regions_0013_DNP_DISBURSEMENTSTOP.drl
+    - PHH_0020D_MR_FORECLOSURESTOP.drl

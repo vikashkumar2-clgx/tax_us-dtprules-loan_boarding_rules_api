@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: tax-servicing-loan-boarding-rules-api
+
+  main:
+    allow-bean-definition-overriding: true
+
+drools:
+  rules:
+    classpath: rules/
+
+info:
+  project:
+    description: '@project.description@'
+    springBoot-version: '@project.springBoot@'
+    clp-cloud-config: '@project.clp_cloud_config@'
+    spring-cloud-dependencies: '@project.spring_cloud_dependencies@'
+    drools-version: '@project.drools_version@'
+    jdk: ${java.version}
+    built-by: ${user.name}
+
+management:
+  endpoints:
+    web:
+      base-path: /manage
+      exposure:
+        include: refresh
+
+#  security:
+#    enabled: false
+
+  endpoint:
+    env:
+      keys-to-sanitize: password,secret,passPhrase,publicKey,privateKey
+    health:
+      show-details: when_authorized

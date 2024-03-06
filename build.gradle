@@ -1,0 +1,196 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+	id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id "org.flywaydb.flyway" version "5.1.3"
+    id "io.freefair.lombok" version "5.3.3.3"
+	id 'java'
+    id "org.sonarqube" version "2.8"
+    id 'jacoco'
+    //id 'com.gorylenko.gradle-git-properties' version '1.4.17'
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'jacoco'
+apply plugin: 'io.spring.dependency-management'
+//apply plugin: "com.gorylenko.gradle-git-properties"
+
+group = 'com.corelogic.tax.tpd'
+sourceCompatibility = '1.8'
+project.ext."baseVersion" = version
+
+repositories {
+    maven {
+        url = "https://artifactory.solutions.corelogic.com/artifactory/tax_us-dtpaymentdecisions-maven-snapshot-virtual"
+        credentials(PasswordCredentials) {
+            username System.getenv("artifactRepoUser") ? System.getenv("artifactRepoUser") : "${artifactRepoUser}"
+            password System.getenv("artifactRepoPassword") ? System.getenv("artifactRepoPassword") : "${artifactRepoPassword}"
+        }
+    }
+    maven {
+        url = "https://artifactory.solutions.corelogic.com/artifactory/tax_us-dtpaymentdecisions-maven-release-virtual"
+        credentials(PasswordCredentials) {
+            username System.getenv("artifactRepoUser") ? System.getenv("artifactRepoUser") : "${artifactRepoUser}"
+            password System.getenv("artifactRepoPassword") ? System.getenv("artifactRepoPassword") : "${artifactRepoPassword}"
+        }
+    }
+}
+
+dependencies {
+//    compile("com.corelogic.tax.tpd:tax-servicing-rules-lib") {
+//        version {
+//            strictly "${taxServicingRulesLib}"
+//        }
+//    }
+
+//  spring boot dependencies
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
+
+    compile("com.corelogic.clp.starters:clp-config-starter:${clp_cloud_config}") {
+        exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+    }
+//  drools-core
+    implementation 'org.drools:drools-core'
+    implementation 'org.kie:kie-spring'
+    implementation 'org.kie:kie-api'
+    implementation 'org.kie:kie-ci'
+    implementation 'org.drools:drools-decisiontables'
+    implementation 'org.drools:drools-compiler'
+
+//  db-dependencies
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+
+//  configuration processor spring boot
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    
+    compile 'org.springframework.data:spring-data-envers:2.0.9.RELEASE'
+    compile("org.flywaydb:flyway-core")
+
+//  test support
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.1.0"
+    testImplementation "org.junit.platform:junit-platform-suite-api:1.3.0"
+    testImplementation "org.mockito:mockito-junit-jupiter:2.18.0"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.1.0"
+    testImplementation "org.junit.platform:junit-platform-launcher:1.1.0"
+    testImplementation "org.springframework:spring-test"
+    testImplementation ('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: "junit", module: "junit"
+    }
+//  kibana
+    implementation 'co.elastic.apm:apm-agent-attach:1.12.0'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+tasks.withType(Test) {
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${spring_cloud_dependencies}"
+        mavenBom "org.drools:drools-bom:${drools_version}"
+    }
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'com.corelogic.tax.tpd.taxservicingrulesapi:tax_us-digitaltaxpaymentdecisions-tax-servicing-loan-boarding-rules-api'
+        property 'sonar.projectName', 'tax-servicing-loan-boarding-rules-api'
+        property 'sonar.coverage.exclusions', "**/test/**"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+    }
+}
+
+def jacocoExclude = ['**/resources/**']
+
+jacoco {
+    toolVersion = "0.8.6"
+    reportsDir = file("${project.buildDir}/reports/jacoco")
+}
+
+jacocoTestReport {
+    dependsOn test
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        csv.enabled false
+    }
+
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclude)})
+    }
+}
+
+jacocoTestCoverageVerification {
+    executionData fileTree(project.buildDir.absolutePath).include("jacoco/*.exec")
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclude)
+        })
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8
+            }
+        }
+    }
+}
+
+project.tasks["sonarqube"].dependsOn "jacocoTestCoverageVerification"
+
+processResources {
+    with copySpec {
+        from 'src/main/resources'
+        include 'application.yml'
+        project.properties.findAll().each {
+            prop ->
+                if (prop.value != null) {
+                    filter(ReplaceTokens, tokens: [(prop.key): prop.value])
+                    filter(ReplaceTokens, tokens: [('project.' + prop.key): prop.value])
+                }
+        }
+    }
+}
+
+springBoot {
+    buildInfo {
+        properties {
+            additional = [
+                    user        : System.properties['user.name'],
+                    buildNumber : System.env.'BUILD_NUMBER' ?: 'UNKNOWN'
+            ]
+        }
+    }
+}
+
+uploadArchives {
+    outputs.upToDateWhen { false }
+    repositories {
+        mavenDeployer {
+            name = "ARTIFACTORY"
+            repository(url: "https://artifactory.solutions.corelogic.com/artifactory/tax_us-dtpaymentdecisions-maven-release-virtual") {
+                authentication(userName: artifactRepoUser, password: artifactRepoPassword)
+            }
+            snapshotRepository(url: "https://artifactory.solutions.corelogic.com/artifactory/tax_us-dtpaymentdecisions-maven-snapshot-virtual") {
+                authentication(userName: artifactRepoUser, password: artifactRepoPassword)
+            }
+        }
+    }
+}
+
+build.finalizedBy(["jacocoTestReport", "jacocoTestCoverageVerification"])

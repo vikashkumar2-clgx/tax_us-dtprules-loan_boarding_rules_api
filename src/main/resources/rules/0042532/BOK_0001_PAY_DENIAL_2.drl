@@ -1,0 +1,46 @@
+import java.time.ZonedDateTime;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBD;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDFlags;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDResults
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDDecisionStatus
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDRuleInfo
+import java.util.ArrayList
+import java.util.List
+import java.math.RoundingMode
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.time.ZoneId;
+
+agenda-group "bok"
+
+rule "BOK_0001_PAY_DENIAL_2"
+salience 80
+when
+    $tf: TaxFactLBD(flags.taxFactLBDPayResponse != null && flags.taxFactLBDPayResponse.size() == 2 && flags.taxFactLBDPayResponse.get(1).response == "D")
+then
+
+    TaxFactLBDRuleInfo newInfo = TaxFactLBDRuleInfo.builder()
+            .name("BOK_0001_PAY_DENIAL_2")
+            .priority(80)
+            .action(null)
+            .build();
+
+    $tf.getResult().setTaxFactLBDDecisionStatus(TaxFactLBDDecisionStatus.DO_NOT_PAY);
+    $tf.getResult().setManualReview(false);
+    $tf.getResult().getRulesApplied().add(newInfo);
+    $tf.getResult().setReason("PD2");
+    $tf.getResult().setPayOverride(null);
+    $tf.getResult().setNotes("Parcel `parcel id` is being reported as $ `CL tax amount` for payee `BK Agency Number` `CL Agency Name` with a `CL Due Date` due date. Due to loan being rejected for payment by the servicing system, unable to pay current taxes due at this time. [CL DTP]");
+    $tf.getResult().setRollDueDate(false);
+    if ($tf.getFlags().getParcelId() != null)
+            $tf.getResult().setNotes($tf.getResult().getNotes().replace("`parcel id`", $tf.getFlags().getParcelId()));
+    if ($tf.getFlags().getTaxAmt() != null)
+            $tf.getResult().setNotes($tf.getResult().getNotes().replace("`CL tax amount`", String.format("%,.2f", $tf.getFlags().getTaxAmt().setScale(3, RoundingMode.UP))));
+    if ($tf.getFlags().getCustAgencyId() != null)
+            $tf.getResult().setNotes($tf.getResult().getNotes().replace("`BK Agency Number`", $tf.getFlags().getCustAgencyId()));
+    if ($tf.getFlags().getAgencyName() != null)
+            $tf.getResult().setNotes($tf.getResult().getNotes().replace("`CL Agency Name`", $tf.getFlags().getAgencyName()));
+    if ($tf.getFlags().getEconomicLossDate() != null)
+            $tf.getResult().setNotes($tf.getResult().getNotes().replace("`CL Due Date`", $tf.getFlags().getEconomicLossDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy").withLocale(Locale.US).withZone(ZoneId.systemDefault()))));
+
+end

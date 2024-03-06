@@ -1,0 +1,39 @@
+@Library('CoreLogicDevopsUtils')
+@Library('CoreLogicPipelineUtils')
+@Library('CoreLogicOrgPipelineConfig')
+ 
+import com.corelogic.devops.utils.PodTemplates
+slaveTemplates = new PodTemplates()
+
+def containerName = "java-maven" 
+def label = "tax-us-dtpaymentdecisions-${containerName}"
+def dImage = "us.gcr.io/clgx-jenkins-glb-prd-8ea3/tax-us/dtpaymentdecisions/${containerName}"
+
+
+def flowName = 'featureFlow'
+def branchName = env.BRANCH_NAME
+println "We're at the branch $branchName"
+if (branchName =~ 'develop.*') {
+    flowName = 'developFlow'
+}else if (branchName == "master") {
+      flowName = 'masterFlow'
+}
+
+slaveTemplates.getPodTemplate(label, containerName, dImage) {  
+    node(label){
+        container(containerName) {
+ 
+            def pipeline = pipelineManager.config()
+            def buildType = new com.corelogic.pipeline.DeployableType(
+                    appName: 'tax-servicing-loan-boarding-rules-api',
+                    ecosystemName:'dtpaymentdecisions',
+                    deployToCF: true,
+                    pipelineFlowName: flowName,
+                    appId: '9dfa0e219d9a11eb81d8060a546c81f2',
+                    builder: new com.corelogic.builder.GradleLibBuilder()
+                   //builder: new com.corelogic.builder.GradleLibBuilder(checkQualityGate: true)
+            )
+            pipeline.execute(buildType)
+        }
+      }
+   }

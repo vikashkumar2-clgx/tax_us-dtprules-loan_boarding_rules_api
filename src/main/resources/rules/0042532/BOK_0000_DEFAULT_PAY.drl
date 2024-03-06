@@ -1,0 +1,26 @@
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBD
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDRuleInfo;
+import com.corelogic.tax.tpd.taxservicingrulesapi.model.TaxFactLBDDecisionStatus;
+
+agenda-group "bok"
+
+rule "BOK_0000_DEFAULT_PAY"
+salience 1000
+when
+    $tf: TaxFactLBD()
+then
+    TaxFactLBDRuleInfo newInfo = TaxFactLBDRuleInfo.builder()
+        .name("BOK_0000_DEFAULT_PAY")
+        .priority(1000)
+        .action(null)
+        .build();
+
+    $tf.getResult().setTaxFactLBDDecisionStatus(TaxFactLBDDecisionStatus.PAY);
+    $tf.getResult().setManualReview(false);
+    $tf.getResult().getRulesApplied().add(newInfo);
+    $tf.getResult().setReason("NRAP");
+    $tf.getResult().setPayOverride(null);
+    $tf.getResult().setNotes(null);
+    $tf.getResult().setRollDueDate(false);
+
+end

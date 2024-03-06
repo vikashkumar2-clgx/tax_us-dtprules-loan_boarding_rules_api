@@ -1,0 +1,16 @@
+version: '2.0'
+services:
+  dbpostgres:
+    image: postgres:10.6
+    volumes:
+      - postgresdata3:/var/lib/postgresql
+    ports:
+      - "5473:5433"
+    environment:
+      POSTGRES_USER: taxsrvc_local_app
+      POSTGRES_PASSWORD: taxsrvc_local_user
+      POSTGRES_DB: taxsrvc_local
+
+volumes:
+  postgresdata3:
+    driver: local

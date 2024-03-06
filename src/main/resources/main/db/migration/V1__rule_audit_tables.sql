@@ -1,0 +1,31 @@
+--CREATE SEQUENCE if not exists hibernate_sequence START 1;
+--
+--CREATE TABLE rules
+--(
+--	rule_id         BIGSERIAL PRIMARY KEY,
+--	rule_name       VARCHAR,
+--	rule_content    VARCHAR,
+--	checksum        VARCHAR,
+--	CONSTRAINT rules_name_unique UNIQUE (rule_name)
+--);
+--
+--CREATE TABLE revinfo
+--(
+--	rev BIGSERIAL NOT NULL,
+--	revtstmp bigint,
+--	CONSTRAINT revinfo_pkey PRIMARY KEY (rev)
+--);
+--
+--CREATE TABLE rules_aud
+--(
+--	rule_id         bigint NOT NULL,
+--	rev             integer NOT NULL,
+--	revtype         smallint,
+--	rule_name       VARCHAR,
+--	rule_content    VARCHAR,
+--	checksum        VARCHAR,
+--	modified        TIMESTAMP not null default current_timestamp,
+--	PRIMARY KEY (rule_id, rev),
+--	CONSTRAINT rules_aud_revinfo FOREIGN KEY (rev) REFERENCES revinfo (rev)
+--);
+--

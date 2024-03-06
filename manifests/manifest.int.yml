@@ -1,0 +1,20 @@
+---
+applications:
+  - name: tax-servicing-loan-boarding-rules-api-{target}
+    memory: 2G
+    instances: 1
+    path: ../build/libs/tax-servicing-loan-boarding-rules-api-1.0.RELEASE.jar
+    buildpack: java_buildpack_offline
+    timeout: 180
+    routes:
+      - route: tax-servicing-loan-boarding-rules-api-{env-target}.apps.pcfwtcdev.clgxlabs.io
+    env:
+      DEBUG: false
+      SPRING_PROFILES_ACTIVE: int
+      JAVA_OPTS: -XX:MaxMetaspaceSize=384M
+
+    services:
+      - config-server
+      - config-server-keystore
+      - logstash-syslog
+      - elastic-apm
